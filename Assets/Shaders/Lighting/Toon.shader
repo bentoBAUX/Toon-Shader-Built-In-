@@ -26,7 +26,6 @@ Shader "Lighting/Toon"
     }
     SubShader
     {
-        UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
         Pass
         {
             Name "ForwardBase"
@@ -65,19 +64,19 @@ Shader "Lighting/Toon"
 
             struct appdata
             {
-                float4 vertex: POSITION;
-                float3 normal: NORMAL;
-                float2 uv : TEXCOORD0;
-                float4 tangent : TANGENT;
+                half4 vertex: POSITION;
+                half3 normal: NORMAL;
+                half2 uv : TEXCOORD0;
+                half4 tangent : TANGENT;
             };
 
             struct v2f
             {
-                float4 pos: SV_POSITION;
-                float2 uv_MainTex : TEXCOORD0;
-                float2 uv_Normal : TEXCOORD1;
-                float3 worldPos: TEXCOORD2;
-                float3x3 TBN : TEXCOORD3;
+                half4 pos: SV_POSITION;
+                half2 uv_MainTex : TEXCOORD0;
+                half2 uv_Normal : TEXCOORD1;
+                half3 worldPos: TEXCOORD2;
+                half3x3 TBN : TEXCOORD3;
                 SHADOW_COORDS(6)
                 UNITY_FOG_COORDS(7)
             };
@@ -90,11 +89,11 @@ Shader "Lighting/Toon"
                 o.pos = UnityObjectToClipPos(vx.vertex);
                 o.worldPos = mul(unity_ObjectToWorld, vx.vertex).xyz;
 
-                float3 worldNormal = UnityObjectToWorldNormal(vx.normal);
-                float3 worldTangent = mul((float3x3)unity_ObjectToWorld, vx.tangent);
+                half3 worldNormal = UnityObjectToWorldNormal(vx.normal);
+                half3 worldTangent = mul((float3x3)unity_ObjectToWorld, vx.tangent);
 
-                float3 bitangent = cross(worldNormal, worldTangent);
-                float3 worldBitangent = mul((float3x3)unity_ObjectToWorld, bitangent);
+                half3 bitangent = cross(worldNormal, worldTangent);
+                half3 worldBitangent = mul((float3x3)unity_ObjectToWorld, bitangent);
 
                 o.TBN = float3x3(worldTangent, worldBitangent, worldNormal);
 
@@ -120,7 +119,7 @@ Shader "Lighting/Toon"
                 fixed NdotL = saturate(dot(n, l));
 
                 fixed shadow = SHADOW_ATTENUATION(i);
-                float lightIntensity = NdotL * shadow / 0.01;
+                float lightIntensity = NdotL * shadow * 1000.0;
                 lightIntensity = saturate(lightIntensity);
 
                 // Blinn-Phong
@@ -141,15 +140,20 @@ Shader "Lighting/Toon"
                 half3 specular = Is * _LightColor0.rgb * shadow;
 
                 // Fresnel Rim-Lighting
+                half4 fresnel;
                 #ifdef RIM
+
                 fixed rimDot = 1 - dot(v, n);
                 float rimIntensity = rimDot * pow(NdotL, _RimThreshold);
+
                 rimIntensity = smoothstep(_FresnelPower - 0.01, _FresnelPower + 0.01, rimIntensity);
-                half4 fresnel = rimIntensity * _LightColor0;
-                half3 lighting = diffuse + specular + fresnel;
+                fresnel = rimIntensity * _LightColor0;
+
                 #else
-                half3 lighting = diffuse + specular;
+                fresnel = 0;
                 #endif
+
+                half3 lighting = diffuse + specular + fresnel;
 
                 half3 finalColor = ambient + lighting;
                 finalColor *= c.rgb;
@@ -175,7 +179,7 @@ Shader "Lighting/Toon"
             HLSLPROGRAM
             #pragma vertex vertAdd
             #pragma fragment fragAdd
-            #pragma multi_compile_fwdbase
+            #pragma multi_compile_fwdadd
             #pragma multi_compile_fog
             #pragma shader_feature RIM
             #pragma shader_feature SPECULAR
@@ -202,19 +206,19 @@ Shader "Lighting/Toon"
 
             struct appdata
             {
-                float4 vertex: POSITION;
-                float3 normal: NORMAL;
-                float2 uv : TEXCOORD0;
-                float4 tangent : TANGENT;
+                half4 vertex: POSITION;
+                half3 normal: NORMAL;
+                half2 uv : TEXCOORD0;
+                half4 tangent : TANGENT;
             };
 
             struct v2f
             {
-                float4 pos: SV_POSITION;
-                float2 uv_MainTex : TEXCOORD0;
-                float2 uv_Normal : TEXCOORD1;
-                float3 worldPos: TEXCOORD2;
-                float3x3 TBN : TEXCOORD3;
+                half4 pos: SV_POSITION;
+                half2 uv_MainTex : TEXCOORD0;
+                half2 uv_Normal : TEXCOORD1;
+                half3 worldPos: TEXCOORD2;
+                half3x3 TBN : TEXCOORD3;
                 SHADOW_COORDS(6)
                 UNITY_FOG_COORDS(7)
             };
@@ -227,11 +231,11 @@ Shader "Lighting/Toon"
                 o.pos = UnityObjectToClipPos(vx.vertex);
                 o.worldPos = mul(unity_ObjectToWorld, vx.vertex).xyz;
 
-                float3 worldNormal = UnityObjectToWorldNormal(vx.normal);
-                float3 worldTangent = mul((float3x3)unity_ObjectToWorld, vx.tangent);
+                half3 worldNormal = UnityObjectToWorldNormal(vx.normal);
+                half3 worldTangent = mul((float3x3)unity_ObjectToWorld, vx.tangent);
 
-                float3 bitangent = cross(worldNormal, worldTangent);
-                float3 worldBitangent = mul((float3x3)unity_ObjectToWorld, bitangent);
+                half3 bitangent = cross(worldNormal, worldTangent);
+                half3 worldBitangent = mul((float3x3)unity_ObjectToWorld, bitangent);
 
                 o.TBN = float3x3(worldTangent, worldBitangent, worldNormal);
 
@@ -248,16 +252,37 @@ Shader "Lighting/Toon"
                 half3 normalMap = UnpackNormal(tex2D(_Normal, i.uv_Normal));
                 normalMap.xy *= _NormalStrength;
 
+                half3 l;
+                half atten;
+
+                if (_WorldSpaceLightPos0.w == 0.0)
+                {
+                    // Directional light
+                    l = normalize(_WorldSpaceLightPos0.xyz);
+                    atten = 1.0;
+                }
+                else
+                {
+                    // Point light
+                    float3 lightPosWorld = _WorldSpaceLightPos0.xyz;
+                    l = lightPosWorld - i.worldPos;
+                    float distanceSqr = dot(l, l);
+                    l = normalize(l);
+
+                    // Calculate attenuation
+                    float range = _LightColor0.w; // Light range is stored in w component
+                    atten = saturate(1.0 - sqrt(distanceSqr) / range);
+                }
+
                 half3 n = normalize(mul(transpose(i.TBN), normalMap));
                 // Transforming normal map vectors from tangent space to world space. TBN * v_world = v_tangent | TBN-1 * v_tangent = v_world
-                half3 l = normalize(_WorldSpaceLightPos0.xyz);
                 half3 v = normalize(_WorldSpaceCameraPos - i.worldPos);
                 half3 h = normalize(l + v);
 
-                fixed NdotL = saturate(dot(n, l));
+                fixed NdotL = saturate(dot(n, l)) * atten;
 
                 fixed shadow = SHADOW_ATTENUATION(i);
-                float lightIntensity = NdotL * shadow / 0.01;
+                float lightIntensity = NdotL * shadow * 1000.0;
                 lightIntensity = saturate(lightIntensity);
 
                 // Blinn-Phong
@@ -270,19 +295,26 @@ Shader "Lighting/Toon"
                 float Is = 0.0;  // Disable specular if checkbox is unchecked
                 #endif
 
+                half3 skyboxColor = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, float3(0,1,0)).rgb;
+
                 half3 diffuse = Id * _LightColor0.rgb * shadow;
                 half3 specular = Is * _LightColor0.rgb * shadow;
 
                 // Fresnel Rim-Lighting
+                half4 fresnel;
                 #ifdef RIM
+
                 fixed rimDot = 1 - dot(v, n);
                 float rimIntensity = rimDot * pow(NdotL, _RimThreshold);
+
                 rimIntensity = smoothstep(_FresnelPower - 0.01, _FresnelPower + 0.01, rimIntensity);
-                half4 fresnel = rimIntensity * _LightColor0;
-                half3 lighting = diffuse + specular + fresnel;
+                fresnel = rimIntensity * _LightColor0;
+
                 #else
-                half3 lighting = diffuse + specular;
+                fresnel = 0;
                 #endif
+
+                half3 lighting = diffuse + specular + fresnel;
 
                 half3 finalColor = lighting;
                 finalColor *= c.rgb;
@@ -294,6 +326,7 @@ Shader "Lighting/Toon"
             ENDHLSL
 
         }
+        UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
     }
 
 

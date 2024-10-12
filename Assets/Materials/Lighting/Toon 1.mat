@@ -14,7 +14,9 @@ Material:
   m_ValidKeywords:
   - RIM
   - SPECULAR
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _RIM
+  - _SPECULAR
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
