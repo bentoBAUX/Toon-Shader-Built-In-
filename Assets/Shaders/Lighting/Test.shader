@@ -1,174 +1,163 @@
-// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Lighting/Test"
+Shader "Forward Shadows Shader"
 {
     Properties
     {
         _Color ("Main Color", Color) = (1,1,1,1)
-        _MainTex ("Base (RGB) Alpha (A)", 2D) = "white" {}
+        _MainTex ("Diffuse (RGB)", 2D) = "white" {}
     }
     SubShader
     {
+        Tags
+        {
+            "Queue" = "Geometry" "RenderType" = "Opaque" "IgnoreProjector" = "True"
+        }
 
-        Tags {"Queue" = "Geometry" "RenderType" = "Opaque"}
         Pass
         {
-            Tags {"LightMode" = "ForwardBase"}                      // This Pass tag is important or Unity may not give it the correct light information.
-           		CGPROGRAM
-                #pragma vertex vert
-                #pragma fragment frag
-                #pragma multi_compile_fwdbase                       // This line tells Unity to compile this pass for forward base.
+            // Need to have it know it's to be used as a forward base pass.
+            Tags
+            {
+                "LightMode" = "ForwardBase"
+            }
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            // Need to have it know it's compiling it as forward base pass.
+            #pragma multi_compile_fwdbase
+            #pragma fragmentoption ARB_precision_hint_fastest
 
-                #include "UnityCG.cginc"
-                #include "AutoLight.cginc"
+            #include "UnityCG.cginc"
+            // This includes the required macros for shadow and attenuation values.
+            #include "AutoLight.cginc"
 
-               	struct vertex_input
-               	{
-               		float4 vertex : POSITION;
-               		float3 normal : NORMAL;
-               		float2 texcoord : TEXCOORD0;
-               	};
+            struct appdata
+            {
+                half4 vertex: POSITION;
+                half3 normal: NORMAL;
+                half2 uv : TEXCOORD0;
+                half4 tangent : TANGENT;
+            };
 
-                struct vertex_output
-                {
-                    float4  pos         : SV_POSITION;
-                    float2  uv          : TEXCOORD0;
-                    float3  lightDir    : TEXCOORD1;
-                    float3  normal		: TEXCOORD2;
-                    LIGHTING_COORDS(3,4)                            // Macro to send shadow & attenuation to the vertex shader.
-                	float3  vertexLighting : TEXCOORD5;
-                };
+            struct v2f
+            {
+                float4 pos : SV_POSITION;
+                float2 uv : TEXCOORD0;
+                float3 normal : TEXCOORD1;
+                float3 lightDir : TEXCOORD2;
+                float3 viewDir : TEXCOORD3;
+                LIGHTING_COORDS(4, 5)
+                // This fills the TEXCOORD of the given numbers - TEXCOORD3 and TEXCOORD4 in this case - with the values required for the vertex shader to send to the fragment shader.
+            };
 
-                sampler2D _MainTex;
-                float4 _MainTex_ST;
-                fixed4 _Color;
-                fixed4 _LightColor0;
+            float4 _MainTex_ST;
+            float3 _Color;
 
-                vertex_output vert (vertex_input v)
-                {
-                    vertex_output o;
-                    o.pos = UnityObjectToClipPos( v.vertex);
-                    o.uv = v.texcoord.xy;
+            v2f vert(appdata v)
+            {
+                v2f o;
 
-					o.lightDir = ObjSpaceLightDir(v.vertex);
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex).xy;
+                o.normal = v.normal.xyz;
+                o.viewDir = ObjSpaceViewDir(v.vertex).xyz;
+                o.lightDir = ObjSpaceLightDir(v.vertex).xyz;
+                TRANSFER_VERTEX_TO_FRAGMENT(o);
+                // This lets the fragment shader calculate the the attenuation + shadow value.
+                return o;
+            }
 
-					o.normal = v.normal;
+            sampler2D _MainTex;
+            fixed4 _LightColor0;
 
-                    TRANSFER_VERTEX_TO_FRAGMENT(o);                 // Macro to send shadow & attenuation to the fragment shader.
-
-                    o.vertexLighting = float3(0.0, 0.0, 0.0);
-
-		            #ifdef VERTEXLIGHT_ON
-
-  					float3 worldN = mul((float3x3)unity_ObjectToWorld, SCALED_NORMAL);
-		          	float4 worldPos = mul(unity_ObjectToWorld, v.vertex);
-
-		            for (int index = 0; index < 4; index++)
-		            {
-		               float4 lightPosition = float4(unity_4LightPosX0[index],
-		                  unity_4LightPosY0[index],
-		                  unity_4LightPosZ0[index], 1.0);
-
-		               float3 vertexToLightSource = float3(lightPosition - worldPos);
-
-		               float3 lightDirection = normalize(vertexToLightSource);
-
-		               float squaredDistance = dot(vertexToLightSource, vertexToLightSource);
-
-		               float attenuation = 1.0 / (1.0  + unity_4LightAtten0[index] * squaredDistance);
-
-		               float3 diffuseReflection = attenuation * float3(unity_LightColor[index])
-		                  * float3(_Color) * max(0.0, dot(worldN, lightDirection));
-
-		               o.vertexLighting = o.vertexLighting + diffuseReflection * 2;
-		            }
-
-
-		            #endif
-
-                    return o;
-                }
-
-                fixed4 frag(vertex_output i) : COLOR
-                {
-                    i.lightDir = normalize(i.lightDir);
-                    fixed atten = LIGHT_ATTENUATION(i); // Macro to get you the combined shadow & attenuation value.
-
-                    fixed4 tex = tex2D(_MainTex, i.uv);
-                    tex *= _Color + fixed4(i.vertexLighting, 1.0);
-
-                    fixed diff = saturate(dot(i.normal, i.lightDir));
-
-                    fixed4 c;
-                    c.rgb = (UNITY_LIGHTMODEL_AMBIENT.rgb * 2 * tex.rgb);         // Ambient term. Only do this in Forward Base. It only needs calculating once.
-                    c.rgb += (tex.rgb * _LightColor0.rgb * diff) * (atten * 2); // Diffuse and specular.
-                    c.a = tex.a + _LightColor0.a * atten;
-                    return c;
-                }
+            fixed4 frag(v2f i) : COLOR
+            {
+                fixed atten = LIGHT_ATTENUATION(i); // This gets you the attenuation + shadow value.
+                fixed3 albedo = tex2D(_MainTex, i.uv).rgb * _Color.rgb;
+                fixed NdotL = saturate(dot(i.normal, i.lightDir));
+                fixed4 c;
+                c.rgb = (UNITY_LIGHTMODEL_AMBIENT.rgb * albedo) * UNITY_LIGHTMODEL_AMBIENT * 2;
+                c.rgb += (NdotL * atten * 2) * (_LightColor0.rgb * albedo);
+                c.a = 1.0;
+                return c;
+            }
             ENDCG
         }
 
-        Pass {
-            Tags {"LightMode" = "ForwardAdd"}                       // Again, this pass tag is important otherwise Unity may not give the correct light information.
-            Blend One One                                           // Additively blend this pass with the previous one(s). This pass gets run once per pixel light.
+        Pass
+        {
+            // Need to have it know it's to be used as a forward add pass.
+            Tags
+            {
+                "LightMode" = "ForwardAdd"
+            }
+            // And it's additive to the base pass.
+            Blend One One
             CGPROGRAM
-                #pragma vertex vert
-                #pragma fragment frag
-                #pragma multi_compile_fwdadd                        // This line tells Unity to compile this pass for forward add, giving attenuation information for the light.
+            #pragma vertex vert
+            #pragma fragment frag
+            // Need to have it know it's compiling it as forward add pass.
+            // Alternatively, you can uncomment the line below and uncomment the line below that to tell it that the forward add pass should have shadows calculated rather than just attenuation.
+            #pragma multi_compile_fwdadd
+            // #pragma multi_compile_fwdadd_fullshadows
+            #pragma fragmentoption ARB_precision_hint_fastest
 
-                #include "UnityCG.cginc"
-                #include "AutoLight.cginc"
+            #include "UnityCG.cginc"
+            // This includes the required macros for shadow and attenuation values.
+            #include "AutoLight.cginc"
 
-                struct v2f
-                {
-                    float4  pos         : SV_POSITION;
-                    float2  uv          : TEXCOORD0;
-                    float3  lightDir    : TEXCOORD2;
-                    float3 normal		: TEXCOORD1;
-                    LIGHTING_COORDS(3,4)                            // Macro to send shadow & attenuation to the vertex shader.
-                };
+            float4 _MainTex_ST;
 
-                v2f vert (appdata_tan v)
-                {
-                    v2f o;
+            struct appdata
+            {
+                half4 vertex: POSITION;
+                half3 normal: NORMAL;
+                half2 uv : TEXCOORD0;
+                half4 tangent : TANGENT;
+            };
 
-                    o.pos = UnityObjectToClipPos( v.vertex);
-                    o.uv = v.texcoord.xy;
+            struct v2f
+            {
+                float4 pos : SV_POSITION;
+                float2 uv : TEXCOORD0;
+                float3 normal : TEXCOORD1;
+                float3 lightDir : TEXCOORD2;
+                float3 viewDir : TEXCOORD3;
+                LIGHTING_COORDS(4, 5)
+                // This fills the TEXCOORD of the given numbers - TEXCOORD3 and TEXCOORD4 in this case - with the values required for the vertex shader to send to the fragment shader.
+            };
 
-					o.lightDir = ObjSpaceLightDir(v.vertex);
+            v2f vert(appdata v)
+            {
+                v2f o;
 
-					o.normal =  v.normal;
-                    TRANSFER_VERTEX_TO_FRAGMENT(o);                 // Macro to send shadow & attenuation to the fragment shader.
-                    return o;
-                }
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex).xy;
+                o.normal = v.normal.xyz;
+                o.viewDir = ObjSpaceViewDir(v.vertex).xyz;
+                o.lightDir = ObjSpaceLightDir(v.vertex).xyz;
+                TRANSFER_VERTEX_TO_FRAGMENT(o);
+                // This lets the fragment shader calculate the the attenuation + shadow value.
+                return o;
+            }
 
-                sampler2D _MainTex;
-                fixed4 _Color;
+            sampler2D _MainTex;
+            fixed4 _LightColor0;
 
-                fixed4 _LightColor0; // Colour of the light used in this pass.
-
-                fixed4 frag(v2f i) : COLOR
-                {
-                    i.lightDir = normalize(i.lightDir);
-
-                    fixed atten = LIGHT_ATTENUATION(i); // Macro to get you the combined shadow & attenuation value.
-
-                    fixed4 tex = tex2D(_MainTex, i.uv);
-
-                    tex *= _Color;
-
-					fixed3 normal = i.normal;
-                    fixed diff = saturate(dot(normal, i.lightDir));
-
-
-                    fixed4 c;
-                    c.rgb = (tex.rgb * _LightColor0.rgb * diff) * (atten * 2); // Diffuse and specular.
-                    c.a = tex.a;
-                    return c;
-                }
+            fixed4 frag(v2f i) : COLOR
+            {
+                fixed atten = LIGHT_ATTENUATION(i); // This gets you the attenuation + shadow value.
+                fixed4 c;
+                c.rgb = (saturate(dot(i.normal, i.lightDir)) * atten * 2) * (_LightColor0.rgb * tex2D(_MainTex, i.uv).
+                    rgb);
+                c.a = 1.0;
+                return c;
+            }
             ENDCG
         }
     }
-    FallBack "VertexLit"    // Use VertexLit's shadow caster/receiver passes.
+    // Must have some fallback here that (eventually, from fallbacks of fallbacks) contains a shadow caster and reciever pass if you want shadows.
+    // Alternatuvely you can just throw in your own shadow caster/reciever passes at the end of the subshader.
+    //Fallback "Mobile/VertexLit"
 }

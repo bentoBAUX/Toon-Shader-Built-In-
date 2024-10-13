@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,19 @@ public class OutlineManager : MonoBehaviour
     [SerializeField] private Color OutlineColour;
     [SerializeField] [Range (1,5)]private float EdgeMultiplier = 1;
     [SerializeField] [Range (0,2)]private float EdgeThickness = 1;
+
+    private Camera cam;
+
+    private void Start()
+    {
+        cam = GetComponent<Camera>();
+    }
+
+    private void OnEnable()
+    {
+        cam = GetComponent<Camera>();
+        cam.depthTextureMode |= DepthTextureMode.DepthNormals;
+    }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {

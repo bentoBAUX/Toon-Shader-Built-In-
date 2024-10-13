@@ -3,7 +3,7 @@
         https://roystan.net/articles/toon-shader/
         https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model
 */
-Shader "Lighting/Toon"
+Shader "Ultimate Toon/Standard Surface"
 {
     Properties
     {
@@ -81,16 +81,16 @@ Shader "Lighting/Toon"
                 UNITY_FOG_COORDS(7)
             };
 
-            v2f vert(appdata vx)
+            v2f vert(appdata v)
             {
                 v2f o;
-                o.uv_MainTex = vx.uv * _MainTex_ST.xy + _MainTex_ST.zw;
-                o.uv_Normal = vx.uv * _Normal_ST.xy + _Normal_ST.zw;
-                o.pos = UnityObjectToClipPos(vx.vertex);
-                o.worldPos = mul(unity_ObjectToWorld, vx.vertex).xyz;
+                o.uv_MainTex = v.uv * _MainTex_ST.xy + _MainTex_ST.zw;
+                o.uv_Normal = v.uv * _Normal_ST.xy + _Normal_ST.zw;
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 
-                half3 worldNormal = UnityObjectToWorldNormal(vx.normal);
-                half3 worldTangent = mul((float3x3)unity_ObjectToWorld, vx.tangent);
+                half3 worldNormal = UnityObjectToWorldNormal(v.normal);
+                half3 worldTangent = mul((float3x3)unity_ObjectToWorld, v.tangent);
 
                 half3 bitangent = cross(worldNormal, worldTangent);
                 half3 worldBitangent = mul((float3x3)unity_ObjectToWorld, bitangent);
@@ -179,11 +179,10 @@ Shader "Lighting/Toon"
             HLSLPROGRAM
             #pragma vertex vertAdd
             #pragma fragment fragAdd
-            #pragma multi_compile_fwdadd
+            #pragma multi_compile_fwdadd_fullshadows
             #pragma multi_compile_fog
             #pragma shader_feature RIM
             #pragma shader_feature SPECULAR
-
 
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
@@ -221,26 +220,31 @@ Shader "Lighting/Toon"
                 half3x3 TBN : TEXCOORD3;
                 SHADOW_COORDS(6)
                 UNITY_FOG_COORDS(7)
+                float3 lightDir : TEXCOORD8;
+                LIGHTING_COORDS(9, 10)
             };
 
-            v2f vertAdd(appdata vx)
+            v2f vertAdd(appdata v)
             {
                 v2f o;
-                o.uv_MainTex = vx.uv * _MainTex_ST.xy + _MainTex_ST.zw;
-                o.uv_Normal = vx.uv * _Normal_ST.xy + _Normal_ST.zw;
-                o.pos = UnityObjectToClipPos(vx.vertex);
-                o.worldPos = mul(unity_ObjectToWorld, vx.vertex).xyz;
+                o.uv_MainTex = v.uv * _MainTex_ST.xy + _MainTex_ST.zw;
+                o.uv_Normal = v.uv * _Normal_ST.xy + _Normal_ST.zw;
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
 
-                half3 worldNormal = UnityObjectToWorldNormal(vx.normal);
-                half3 worldTangent = mul((float3x3)unity_ObjectToWorld, vx.tangent);
+                half3 worldNormal = UnityObjectToWorldNormal(v.normal);
+                half3 worldTangent = mul((float3x3)unity_ObjectToWorld, v.tangent);
 
                 half3 bitangent = cross(worldNormal, worldTangent);
                 half3 worldBitangent = mul((float3x3)unity_ObjectToWorld, bitangent);
 
                 o.TBN = float3x3(worldTangent, worldBitangent, worldNormal);
 
+                o.lightDir = ObjSpaceLightDir(v.vertex).xyz;
+
                 TRANSFER_SHADOW(o);
                 UNITY_TRANSFER_FOG(o, o.pos);
+                TRANSFER_VERTEX_TO_FRAGMENT(o);
 
                 return o;
             }
@@ -264,25 +268,21 @@ Shader "Lighting/Toon"
                 else
                 {
                     // Point light
-                    float3 lightPosWorld = _WorldSpaceLightPos0.xyz;
-                    l = lightPosWorld - i.worldPos;
-                    float distanceSqr = dot(l, l);
-                    l = normalize(l);
+                    l = normalize(_WorldSpaceLightPos0.xyz - i.worldPos);
 
                     // Calculate attenuation
-                    float range = _LightColor0.w; // Light range is stored in w component
-                    atten = saturate(1.0 - sqrt(distanceSqr) / range);
+                    atten = LIGHT_ATTENUATION(i);
                 }
 
-                half3 n = normalize(mul(transpose(i.TBN), normalMap));
+                float3 n = normalize(mul(transpose(i.TBN), normalMap));
                 // Transforming normal map vectors from tangent space to world space. TBN * v_world = v_tangent | TBN-1 * v_tangent = v_world
                 half3 v = normalize(_WorldSpaceCameraPos - i.worldPos);
                 half3 h = normalize(l + v);
 
-                fixed NdotL = saturate(dot(n, l)) * atten;
+                float NdotL = saturate(dot(n, l)) * atten;
 
                 fixed shadow = SHADOW_ATTENUATION(i);
-                float lightIntensity = NdotL * shadow * 1000.0;
+                float lightIntensity = smoothstep(0, 0.001, NdotL ) * shadow;
                 lightIntensity = saturate(lightIntensity);
 
                 // Blinn-Phong
@@ -290,7 +290,7 @@ Shader "Lighting/Toon"
 
                 #ifdef SPECULAR
                 float Is = _k.z * pow(saturate(dot(h, n)), _SpecularExponent * _SpecularExponent);
-                Is = smoothstep(0.005, 0.01, Is);
+                Is = smoothstep(0., 0.01, Is);
                 #else
                 float Is = 0.0;  // Disable specular if checkbox is unchecked
                 #endif

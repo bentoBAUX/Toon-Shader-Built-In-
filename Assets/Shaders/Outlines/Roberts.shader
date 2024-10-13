@@ -11,6 +11,7 @@
 
         Pass
         {
+            Lighting Off
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -74,6 +75,7 @@
 
                 return lerp(originalColor, _OutlineColour, edgeIntensity );
             }
+
             ENDCG
         }
     }
