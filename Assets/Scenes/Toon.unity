@@ -402,9 +402,9 @@ GameObject:
   - component: {fileID: 603048968}
   - component: {fileID: 603048967}
   - component: {fileID: 603048966}
+  - component: {fileID: 603048973}
   - component: {fileID: 603048972}
   - component: {fileID: 603048971}
-  - component: {fileID: 603048973}
   m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -459,7 +459,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4294967287
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -572,15 +572,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 603048965}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cc265e1adc049d745a4978cb141e3092, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shader: {fileID: 4800000, guid: 9e58b104e836f0f42a4dc65e1f23db89, type: 3}
-  OutlineColour: {r: 0, g: 0, b: 0, a: 0}
-  EdgeMultiplier: 10
-  EdgeThickness: 2
+  shader: {fileID: 4800000, guid: bfb743a1cd5e28a41a4fd4cb2a6e4060, type: 3}
+  mode: 0
 --- !u!1001 &694469073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -695,7 +693,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 0, b: 0.0959239, a: 1}
-  m_Intensity: 2.26
+  m_Intensity: 0.14
   m_Range: 1.46
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208

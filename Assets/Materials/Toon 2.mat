@@ -67,6 +67,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AlphaCutoff: 0.5
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DeltaX: 0.001
@@ -92,6 +93,7 @@ Material:
     - _SrcBlend: 1
     - _Transparency: 1
     - _UVSec: 0
+    - _UseTransparent: 0
     - _ZWrite: 1
     - _ambient: 0
     m_Colors:

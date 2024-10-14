@@ -30,6 +30,10 @@ Shader "Ultimate Toon/Standard Surface"
     }
     SubShader
     {
+        Tags
+        {
+            "RenderType" = "Opaque"
+        }
 
         Pass
         {
