@@ -402,9 +402,10 @@ GameObject:
   - component: {fileID: 603048968}
   - component: {fileID: 603048967}
   - component: {fileID: 603048966}
-  - component: {fileID: 603048969}
-  - component: {fileID: 603048970}
-  m_Layer: 0
+  - component: {fileID: 603048972}
+  - component: {fileID: 603048971}
+  - component: {fileID: 603048973}
+  m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -452,7 +453,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 49.3
+  field of view: 42
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -479,29 +480,13 @@ Transform:
   m_GameObject: {fileID: 603048965}
   serializedVersion: 2
   m_LocalRotation: {x: -0.1627774, y: -0.2616871, z: -0.043145236, w: 0.9503483}
-  m_LocalPosition: {x: 11.135427, y: 6.19939, z: 25.599684}
+  m_LocalPosition: {x: 11.135427, y: 6.19939, z: 25.348}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -17.189, y: -54.813, z: 0.07}
---- !u!114 &603048969
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 603048965}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc265e1adc049d745a4978cb141e3092, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shader: {fileID: 4800000, guid: 9e58b104e836f0f42a4dc65e1f23db89, type: 3}
-  OutlineColour: {r: 0, g: 0, b: 0, a: 0}
-  EdgeMultiplier: 2.29
-  EdgeThickness: 0.35
---- !u!114 &603048970
+--- !u!114 &603048971
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -510,12 +495,92 @@ MonoBehaviour:
   m_GameObject: {fileID: 603048965}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5a8e9b7cdbecaa246a12e2700fa32050, type: 3}
+  m_Script: {fileID: 11500000, guid: 8b9a305e18de0c04dbd257a21cd47087, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shader: {fileID: 4800000, guid: 7b167f952f7270e44b064a35cfcd15f8, type: 3}
-  offset: 0.001
-  threshold: 0.483
+  sharedProfile: {fileID: 11400000, guid: a5e495a14c055d545989c802525d858d, type: 2}
+  isGlobal: 1
+  blendDistance: 0
+  weight: 1
+  priority: 0
+--- !u!114 &603048972
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 603048965}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeTrigger: {fileID: 603048968}
+  volumeLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  stopNaNPropagation: 1
+  finalBlitToCameraTarget: 0
+  antialiasingMode: 2
+  temporalAntialiasing:
+    jitterSpread: 0.75
+    sharpness: 0.25
+    stationaryBlending: 0.95
+    motionBlending: 0.85
+  subpixelMorphologicalAntialiasing:
+    quality: 2
+  fastApproximateAntialiasing:
+    fastMode: 0
+    keepAlpha: 0
+  fog:
+    enabled: 1
+    excludeSkybox: 1
+  debugLayer:
+    lightMeter:
+      width: 512
+      height: 256
+      showCurves: 1
+    histogram:
+      width: 512
+      height: 256
+      channel: 3
+    waveform:
+      exposure: 0.12
+      height: 256
+    vectorscope:
+      size: 256
+      exposure: 0.12
+    overlaySettings:
+      linearDepth: 0
+      motionColorIntensity: 4
+      motionGridSize: 64
+      colorBlindnessType: 0
+      colorBlindnessStrength: 1
+  m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
+  m_ShowToolkit: 0
+  m_ShowCustomSorter: 0
+  breakBeforeColorGrading: 0
+  m_BeforeTransparentBundles: []
+  m_BeforeStackBundles:
+  - assemblyQualifiedName: PostProcessOutline, Assembly-CSharp, Version=0.0.0.0,
+      Culture=neutral, PublicKeyToken=null
+  m_AfterStackBundles: []
+--- !u!114 &603048973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 603048965}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc265e1adc049d745a4978cb141e3092, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shader: {fileID: 4800000, guid: 9e58b104e836f0f42a4dc65e1f23db89, type: 3}
+  OutlineColour: {r: 0, g: 0, b: 0, a: 0}
+  EdgeMultiplier: 10
+  EdgeThickness: 2
 --- !u!1001 &694469073
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -589,6 +654,10 @@ PrefabInstance:
       value: Monkey
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f8c0e7092a3d35d4cbaeddd4d733fc02, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: f8c0e7092a3d35d4cbaeddd4d733fc02, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -607,7 +676,7 @@ GameObject:
   m_Component:
   - component: {fileID: 843518126}
   - component: {fileID: 843518125}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Point Light (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -685,7 +754,7 @@ Transform:
   m_GameObject: {fileID: 843518124}
   serializedVersion: 2
   m_LocalRotation: {x: 0.31392112, y: 0.16909485, z: -0.040347815, w: 0.93339837}
-  m_LocalPosition: {x: 9.967, y: 6.253, z: 27.581}
+  m_LocalPosition: {x: 9.967, y: 6.642, z: 29.154}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -884,13 +953,13 @@ GameObject:
   m_Component:
   - component: {fileID: 1761713708}
   - component: {fileID: 1761713707}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Point Light (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!108 &1761713707
 Light:
   m_ObjectHideFlags: 0
@@ -1177,13 +1246,13 @@ GameObject:
   m_Component:
   - component: {fileID: 2036567974}
   - component: {fileID: 2036567973}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!108 &2036567973
 Light:
   m_ObjectHideFlags: 0

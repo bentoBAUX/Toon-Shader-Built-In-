@@ -10,6 +10,10 @@ Shader "Ultimate Toon/Standard Surface"
         [Header(Colours)][Space(10)]
         _DiffuseColour("Diffuse Colour", Color) = (1,1,1,1)
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
+
+        [Toggle(USETRANSPARENT)] _UseTransparent("Use Transparent", float) = 0
+        _AlphaCutoff("Alpha Cutoff", Range(0, 1)) = 0.5
+
         [Normal]_Normal("Normal", 2D) = "bump" {}
         _NormalStrength("Normal Strength", Range(0,20)) = 1
 
@@ -26,6 +30,53 @@ Shader "Ultimate Toon/Standard Surface"
     }
     SubShader
     {
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+            ZWrite On
+            HLSLPROGRAM
+
+            #include "UnityCG.cginc"
+
+            #pragma vertex vertShadow
+            #pragma fragment fragShadow
+            #pragma multi_compile_shadowcaster
+            struct appdata
+            {
+                half4 vertex: POSITION;
+                half3 normal: NORMAL;
+                half2 uv : TEXCOORD0;
+                half4 tangent : TANGENT;
+            };
+
+            struct v2f
+            {
+                float2 uv_MainTex : TEXCOORD0;
+                float4 pos : SV_POSITION;
+            };
+
+            sampler2D _MainTex;
+            float _AlphaCutoff;
+
+            v2f vertShadow(appdata v)
+            {
+                v2f o;
+                o.pos = UnityObjectToClipPos(v.vertex);
+                o.uv_MainTex = v.uv;
+                return o;
+            }
+
+            float4 fragShadow(v2f i) : SV_Target
+            {
+                float4 c = tex2D(_MainTex, i.uv_MainTex);
+                clip(c.a - _AlphaCutoff);
+                return 0;
+            }
+            ENDHLSL
+        }
+
         Pass
         {
             Name "ForwardBase"
@@ -34,6 +85,8 @@ Shader "Ultimate Toon/Standard Surface"
                 "LightMode"="ForwardBase"
             }
 
+            Blend SrcAlpha OneMinusSrcAlpha
+
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -41,6 +94,7 @@ Shader "Ultimate Toon/Standard Surface"
             #pragma multi_compile_fog
             #pragma shader_feature RIM
             #pragma shader_feature SPECULAR
+            #pragma shader_feature USETRANSPARENT
 
 
             #include "UnityCG.cginc"
@@ -50,6 +104,8 @@ Shader "Ultimate Toon/Standard Surface"
 
             uniform sampler2D _MainTex;
             uniform half4 _MainTex_ST;
+
+            uniform half _AlphaCutoff;
 
             uniform half4 _Normal_ST;
             uniform sampler2D _Normal;
@@ -107,6 +163,10 @@ Shader "Ultimate Toon/Standard Surface"
             {
                 half4 c = tex2D(_MainTex, i.uv_MainTex) * _DiffuseColour;
 
+                #ifdef USETRANSPARENT
+                    clip(c.a - _AlphaCutoff);
+                #endif
+
                 half3 normalMap = UnpackNormal(tex2D(_Normal, i.uv_Normal));
                 normalMap.xy *= _NormalStrength;
 
@@ -160,7 +220,7 @@ Shader "Ultimate Toon/Standard Surface"
 
                 UNITY_APPLY_FOG(i.fogCoord, finalColor);
 
-                return half4(finalColor, 1.0);
+                return half4(finalColor, c.a);
             }
             ENDHLSL
 
@@ -183,6 +243,7 @@ Shader "Ultimate Toon/Standard Surface"
             #pragma multi_compile_fog
             #pragma shader_feature RIM
             #pragma shader_feature SPECULAR
+            #pragma shader_feature USETRANSPARENT
 
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
@@ -191,6 +252,8 @@ Shader "Ultimate Toon/Standard Surface"
 
             uniform sampler2D _MainTex;
             uniform half4 _MainTex_ST;
+
+            uniform half _AlphaCutoff;
 
             uniform half4 _Normal_ST;
             uniform sampler2D _Normal;
@@ -253,6 +316,10 @@ Shader "Ultimate Toon/Standard Surface"
             {
                 half4 c = tex2D(_MainTex, i.uv_MainTex) * _DiffuseColour;
 
+                #ifdef USETRANSPARENT
+                    clip(c.a - _AlphaCutoff);
+                #endif
+
                 half3 normalMap = UnpackNormal(tex2D(_Normal, i.uv_Normal));
                 normalMap.xy *= _NormalStrength;
 
@@ -282,7 +349,7 @@ Shader "Ultimate Toon/Standard Surface"
                 float NdotL = saturate(dot(n, l)) * atten;
 
                 fixed shadow = SHADOW_ATTENUATION(i);
-                float lightIntensity = smoothstep(0, 0.001, NdotL ) * shadow;
+                float lightIntensity = smoothstep(0, 0.001, NdotL) * shadow;
                 lightIntensity = saturate(lightIntensity);
 
                 // Blinn-Phong
@@ -321,11 +388,13 @@ Shader "Ultimate Toon/Standard Surface"
 
                 UNITY_APPLY_FOG(i.fogCoord, finalColor);
 
-                return half4(finalColor, 1.0);
+                return half4(finalColor, c.a);
             }
             ENDHLSL
 
         }
+
+
         UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
     }
 
