@@ -69,7 +69,7 @@ MonoBehaviour:
     value: 1
   color:
     overrideState: 1
-    value: {r: 0.21509439, g: 0.21509439, b: 0.21509439, a: 1}
+    value: {r: 0, g: 0, b: 0, a: 1}
   depthThreshold:
     overrideState: 1
     value: 1.63

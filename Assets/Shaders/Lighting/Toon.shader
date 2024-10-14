@@ -181,13 +181,30 @@ Shader "Ultimate Toon/Standard Surface"
                 half3 normalMap = UnpackNormal(tex2D(_Normal, i.uv_Normal));
                 normalMap.xy *= _NormalStrength;
 
+                half3 l;
+                half atten;
+
+                if (_WorldSpaceLightPos0.w == 0.0)
+                {
+                    // Directional light
+                    l = normalize(_WorldSpaceLightPos0.xyz);
+                    atten = 1.0;
+                }
+                else
+                {
+                    // Point light
+                    l = normalize(_WorldSpaceLightPos0.xyz - i.worldPos);
+
+                    // Calculate attenuation
+                    atten = LIGHT_ATTENUATION(i);
+                }
+
                 half3 n = normalize(mul(transpose(i.TBN), normalMap));
                 // Transforming normal map vectors from tangent space to world space. TBN * v_world = v_tangent | TBN-1 * v_tangent = v_world
-                half3 l = normalize(_WorldSpaceLightPos0.xyz);
                 half3 v = normalize(_WorldSpaceCameraPos - i.worldPos);
                 half3 h = normalize(l + v);
 
-                fixed NdotL = saturate(dot(n, l));
+                fixed NdotL = saturate(dot(n, l)) * atten;
 
                 fixed shadow = SHADOW_ATTENUATION(i);
                 float lightIntensity = NdotL * shadow * 1000.0;
@@ -199,7 +216,7 @@ Shader "Ultimate Toon/Standard Surface"
 
                 #ifdef SPECULAR
                 float Is = _k.z * pow(saturate(dot(h, n)), _SpecularExponent * _SpecularExponent);
-                Is = smoothstep(0.005, 0.01, Is);
+                Is = smoothstep(0.005, 0.01, Is) * atten;
                 #else
                 float Is = 0.0;  // Disable specular if checkbox is unchecked
                 #endif
@@ -371,7 +388,7 @@ Shader "Ultimate Toon/Standard Surface"
 
                 #ifdef SPECULAR
                 float Is = _k.z * pow(saturate(dot(h, n)), _SpecularExponent * _SpecularExponent);
-                Is = smoothstep(0., 0.01, Is);
+                Is = smoothstep(0., 0.01, Is) * atten;
                 #else
                 float Is = 0.0;  // Disable specular if checkbox is unchecked
                 #endif

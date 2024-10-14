@@ -6,9 +6,10 @@ using UnityEngine;
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
 public enum RenderMode
 {
-    Depth = 0,
-    Normals = 1,
-    DepthNormals = 2
+    None = 0,
+    Depth = 1,
+    Normals = 2,
+    DepthNormals = 3
 }
 
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
@@ -21,20 +22,9 @@ public class DepthNormalsManager : MonoBehaviour
     [SerializeField] private RenderMode mode = RenderMode.Depth;
 
 
-    private void UpdateCameraDepthMode()
+    private void Start()
     {
-        switch (mode)
-        {
-            case RenderMode.Depth:
-                Camera.main.depthTextureMode = DepthTextureMode.Depth;
-                break;
-            case RenderMode.Normals:
-                Camera.main.depthTextureMode = DepthTextureMode.DepthNormals;
-                break;
-            case RenderMode.DepthNormals:
-                Camera.main.depthTextureMode = DepthTextureMode.DepthNormals;
-                break;
-        }
+        Camera.main.depthTextureMode = DepthTextureMode.DepthNormals;
     }
 
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
@@ -43,6 +33,11 @@ public class DepthNormalsManager : MonoBehaviour
             material = new Material(shader);
         switch (mode)
         {
+            case RenderMode.None:
+                material.DisableKeyword("DEPTH");
+                material.DisableKeyword("NORMALS");
+                material.DisableKeyword("DEPTHNORMALS");
+                break;
             case RenderMode.Depth:
                 material.EnableKeyword("DEPTH");
                 material.DisableKeyword("NORMALS");
@@ -60,11 +55,6 @@ public class DepthNormalsManager : MonoBehaviour
                 break;
         }
         Graphics.Blit(source, destination, material);
-    }
-
-    private void OnValidate()
-    {
-        UpdateCameraDepthMode();
     }
 
 }

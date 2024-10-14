@@ -13,7 +13,6 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - RIM
-  - SPECULAR
   m_InvalidKeywords:
   - _RIM
   - _SPECULAR
@@ -69,6 +68,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AlphaCutoff: 0.5
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -85,11 +85,12 @@ Material:
     - _Rim: 1
     - _RimThreshold: 0.1
     - _SmoothnessTextureChannel: 0
-    - _Specular: 1
+    - _Specular: 0
     - _SpecularExponent: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
+    - _UseTransparent: 0
     - _ZWrite: 1
     - _ambient: 0
     - _sigma: 0.189

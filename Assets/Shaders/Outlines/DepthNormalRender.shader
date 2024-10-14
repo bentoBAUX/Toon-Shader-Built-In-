@@ -51,7 +51,7 @@ Shader "Image Effects/DepthNormals"
                 float depth;
                 float3 normals;
 
-                float4 col = float4(1, 1, 1, 1); // Fallback color (red)
+                float4 col = tex2D(_MainTex, i.uv); // Fallback color (red)
 
                 #ifdef DEPTH
                 depth = tex2D(_CameraDepthTexture, i.scrPos.xy).r;
@@ -69,7 +69,7 @@ Shader "Image Effects/DepthNormals"
                 DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, i.scrPos.xy), depth, normals);
                 col = float4(normals.xyz, 1); // Display normals without remapping
                 #endif
-                
+
                 return col;
             }
             ENDCG
