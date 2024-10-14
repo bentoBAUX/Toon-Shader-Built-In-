@@ -33,11 +33,16 @@ Shader "Ultimate Toon/Standard Surface"
 
         Pass
         {
-            Name "ShadowCaster"
-            Tags { "LightMode" = "ShadowCaster" }
+            // This pass is rendered from the light sources' perspectives as it writes depth values into the shadowmap.
+            // Alpha pixels here are excluded from the shadowmap and therefore will not cast and receive shadows.
+
+            Name "Clip Alphas"
+            Tags
+            {
+                "LightMode" = "ShadowCaster"
+            }
             ZWrite On
             HLSLPROGRAM
-
             #include "UnityCG.cginc"
 
             #pragma vertex vertShadow
@@ -79,6 +84,8 @@ Shader "Ultimate Toon/Standard Surface"
 
         Pass
         {
+            // Base lighting pass for directional light
+
             Name "ForwardBase"
             Tags
             {
@@ -164,7 +171,7 @@ Shader "Ultimate Toon/Standard Surface"
                 half4 c = tex2D(_MainTex, i.uv_MainTex) * _DiffuseColour;
 
                 #ifdef USETRANSPARENT
-                    clip(c.a - _AlphaCutoff);
+                clip(c.a - _AlphaCutoff);
                 #endif
 
                 half3 normalMap = UnpackNormal(tex2D(_Normal, i.uv_Normal));
@@ -228,6 +235,9 @@ Shader "Ultimate Toon/Standard Surface"
 
         Pass
         {
+            // This pass is run for each additional light in the scene.
+            // Only directional and point lights are supported.
+
             Name "ForwardAdd"
             Tags
             {
@@ -317,7 +327,7 @@ Shader "Ultimate Toon/Standard Surface"
                 half4 c = tex2D(_MainTex, i.uv_MainTex) * _DiffuseColour;
 
                 #ifdef USETRANSPARENT
-                    clip(c.a - _AlphaCutoff);
+                clip(c.a - _AlphaCutoff);
                 #endif
 
                 half3 normalMap = UnpackNormal(tex2D(_Normal, i.uv_Normal));
@@ -393,7 +403,6 @@ Shader "Ultimate Toon/Standard Surface"
             ENDHLSL
 
         }
-
 
         UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
     }
