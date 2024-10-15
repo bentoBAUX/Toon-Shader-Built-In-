@@ -50,8 +50,11 @@ Shader "Image Effects/DepthNormalOutline"
 
             uniform float _EdgeThickness;
             uniform float _EdgeIntensity;
+            uniform float _NormalThreshold;
+            uniform float _DepthThreshold;
 
             // Roberts Cross Filter https://youtu.be/N6Aty5alTXM
+
             float EdgeDetectionDepth(float2 uv, float2 texelSize)
             {
                 texelSize *= _EdgeThickness;
@@ -64,30 +67,52 @@ Shader "Image Effects/DepthNormalOutline"
                 float4 g1 = tex2D(_CameraDepthTexture, current) - tex2D(_CameraDepthTexture, bottomRight);
                 float4 g2 = tex2D(_CameraDepthTexture, right) - tex2D(_CameraDepthTexture, bottom);
 
-                return sqrt(dot(g1, g1) + dot(g2, g2)) * _EdgeIntensity * 10; // Scale up for stronger edge detection
+                float edge = sqrt(dot(g1, g1) + dot(g2, g2));
+
+                if (edge < _DepthThreshold) edge = 0.0;
+
+                return edge * _EdgeIntensity * 10; // Scale up for stronger edge detection
             }
+
 
             // Function to calculate normals gradient (difference in normals between neighbouring pixels)
             float EdgeDetectionNormals(float2 uv, float2 texelSize)
             {
                 texelSize *= _EdgeThickness;
 
-                float depth;
-                float3 current, bottomRight, right, bottom;
+                float depthCurrent, depthBottomRight, depthRight, depthBottom;
+                float3 normalCurrent, normalBottomRight, normalRight, normalBottom;
 
                 // Decode depth and normals for the current pixel and its neighbors
-                DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, uv), depth, current);
-                DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, uv + texelSize), depth, bottomRight);
-                DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, uv + float2(texelSize.x, 0)), depth, right);
-                DecodeDepthNormal(tex2D(_CameraDepthNormalsTexture, uv + float2(0, texelSize.y)), depth, bottom);
+                float4 packedCurrent = tex2D(_CameraDepthNormalsTexture, uv);
+                DecodeDepthNormal(packedCurrent, depthCurrent, normalCurrent);
 
-                // Compute gradient differences for normals
-                float4 g1 = tex2D(_CameraDepthNormalsTexture, current) - tex2D(_CameraDepthNormalsTexture, bottomRight);
-                float4 g2 = tex2D(_CameraDepthNormalsTexture, right) - tex2D(_CameraDepthNormalsTexture, bottom);
+                float4 packedBottomRight = tex2D(_CameraDepthNormalsTexture, uv + texelSize);
+                DecodeDepthNormal(packedBottomRight, depthBottomRight, normalBottomRight);
 
-                return sqrt(dot(g1, g1) + dot(g2, g2)) * _EdgeIntensity * 10; // Scale up for stronger edge detection
+                float4 packedRight = tex2D(_CameraDepthNormalsTexture, uv + float2(texelSize.x, 0));
+                DecodeDepthNormal(packedRight, depthRight, normalRight);
+
+                float4 packedBottom = tex2D(_CameraDepthNormalsTexture, uv + float2(0, texelSize.y));
+                DecodeDepthNormal(packedBottom, depthBottom, normalBottom);
+
+                float3 g1 = normalCurrent - normalBottomRight;
+                float3 g2 = normalRight - normalBottom;
+
+                float edge = sqrt(dot(g1, g1) + dot(g2, g2));
+
+                if (edge < _NormalThreshold) edge = 0.0;
+
+                return edge * _EdgeIntensity * 10;
             }
 
+            float EdgeDetectionDepthNormals(float2 uv, float2 texelSize)
+            {
+                float depth = EdgeDetectionDepth(uv, texelSize);
+                float normal = EdgeDetectionNormals(uv, texelSize);
+
+                return max(depth,normal);
+            }
 
             fixed4 frag(v2f i) : SV_Target
             {
@@ -97,6 +122,8 @@ Shader "Image Effects/DepthNormalOutline"
                 float4 originalColor = tex2D(_MainTex, i.uv);
                 float4 col = tex2D(_MainTex, i.uv); // Fallback color (default scene texture)
 
+
+
                 #ifdef DEPTH
                 edge = EdgeDetectionDepth(i.uv, _MainTex_TexelSize.xy);  // Detect edges based on depth
                 col = float4(edge, edge, edge, 1);
@@ -104,6 +131,11 @@ Shader "Image Effects/DepthNormalOutline"
 
                 #ifdef NORMALS
                 edge = EdgeDetectionNormals(i.uv, _MainTex_TexelSize.xy);  // Detect edges based on normals
+                col = float4(edge, edge, edge, 1);
+                #endif
+
+                #ifdef DEPTHNORMALS
+                edge = EdgeDetectionDepthNormals(i.uv, _MainTex_TexelSize.xy);  // Detect edges based on normals
                 col = float4(edge, edge, edge, 1);
                 #endif
 

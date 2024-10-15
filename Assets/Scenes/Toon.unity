@@ -402,9 +402,9 @@ GameObject:
   - component: {fileID: 603048968}
   - component: {fileID: 603048967}
   - component: {fileID: 603048966}
-  - component: {fileID: 603048973}
   - component: {fileID: 603048972}
   - component: {fileID: 603048971}
+  - component: {fileID: 603048973}
   m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -466,7 +466,7 @@ Camera:
   m_TargetEye: 3
   m_HDR: 1
   m_AllowMSAA: 1
-  m_AllowDynamicResolution: 0
+  m_AllowDynamicResolution: 1
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
@@ -579,9 +579,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: bfb743a1cd5e28a41a4fd4cb2a6e4060, type: 3}
   mode: 1
-  edgeThickness: 1.66
-  edgeIntensity: 1.87
+  edgeThickness: 0.83
+  edgeIntensity: 1
   edgeColor: {r: 0, g: 0, b: 0, a: 0}
+  normalThreshold: 0.2
+  depthThreshold: 0
 --- !u!1001 &694469073
 PrefabInstance:
   m_ObjectHideFlags: 0
