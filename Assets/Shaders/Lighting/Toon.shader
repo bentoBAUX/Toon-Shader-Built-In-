@@ -3,7 +3,7 @@
         https://roystan.net/articles/toon-shader/
         https://en.wikipedia.org/wiki/Blinn–Phong_reflection_model
 */
-Shader "Ultimate Toon/Standard Surface"
+Shader "bentoBAUX/Toon Lit"
 {
     Properties
     {
@@ -52,6 +52,7 @@ Shader "Ultimate Toon/Standard Surface"
             #pragma vertex vertShadow
             #pragma fragment fragShadow
             #pragma multi_compile_shadowcaster
+
             struct appdata
             {
                 half4 vertex: POSITION;
@@ -181,26 +182,10 @@ Shader "Ultimate Toon/Standard Surface"
                 half3 normalMap = UnpackNormal(tex2D(_Normal, i.uv_Normal));
                 normalMap.xy *= _NormalStrength;
 
-                half3 l;
-                half atten;
+                half3 l = normalize(_WorldSpaceLightPos0.xyz);
+                half atten = 1.0;
 
-                if (_WorldSpaceLightPos0.w == 0.0)
-                {
-                    // Directional light
-                    l = normalize(_WorldSpaceLightPos0.xyz);
-                    atten = 1.0;
-                }
-                else
-                {
-                    // Point light
-                    l = normalize(_WorldSpaceLightPos0.xyz - i.worldPos);
-
-                    // Calculate attenuation
-                    atten = LIGHT_ATTENUATION(i);
-                }
-
-                half3 n = normalize(mul(transpose(i.TBN), normalMap));
-                // Transforming normal map vectors from tangent space to world space. TBN * v_world = v_tangent | TBN-1 * v_tangent = v_world
+                half3 n = normalize(mul(transpose(i.TBN), normalMap)); // Transforming normal map vectors from tangent space to world space. TBN * v_world = v_tangent | TBN-1 * v_tangent = v_world
                 half3 v = normalize(_WorldSpaceCameraPos - i.worldPos);
                 half3 h = normalize(l + v);
 
@@ -392,8 +377,6 @@ Shader "Ultimate Toon/Standard Surface"
                 #else
                 float Is = 0.0;  // Disable specular if checkbox is unchecked
                 #endif
-
-                half3 skyboxColor = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, float3(0,1,0)).rgb;
 
                 half3 diffuse = Id * _LightColor0.rgb * shadow;
                 half3 specular = Is * _LightColor0.rgb * shadow;

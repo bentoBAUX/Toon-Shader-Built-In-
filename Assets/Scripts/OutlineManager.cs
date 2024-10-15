@@ -8,8 +8,9 @@ public enum RenderMode
 {
     None = 0,
     Depth = 1,
-    Normals = 2,
-    DepthNormals = 3
+    DepthNormals = 2,
+    Normals = 3,
+    Scene = 4
 }
 
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
@@ -22,7 +23,7 @@ public class DepthNormalsManager : MonoBehaviour
     [SerializeField] private RenderMode mode = RenderMode.Depth;
 
     [SerializeField] [Range(0,2)]private float edgeThickness = 1;
-    [SerializeField] [Range(1,5)] private float edgeIntensity = 1;
+    [SerializeField] [Range(0,2)] private float edgeIntensity = 1;
     [SerializeField] private Color edgeColor;
     [SerializeField] [Range(0, 1)] private float normalThreshold = 0.2f;
     [SerializeField] [Range(0, 1)] private float depthThreshold = 0.0f;
@@ -47,21 +48,31 @@ public class DepthNormalsManager : MonoBehaviour
         switch (mode)
         {
             case RenderMode.None:
+                material.DisableKeyword("SCENE");
+                material.DisableKeyword("DEPTH");
+                material.DisableKeyword("NORMALS");
+                material.DisableKeyword("DEPTHNORMALS");
+                break;
+            case RenderMode.Scene:
+                material.EnableKeyword("SCENE");
                 material.DisableKeyword("DEPTH");
                 material.DisableKeyword("NORMALS");
                 material.DisableKeyword("DEPTHNORMALS");
                 break;
             case RenderMode.Depth:
+                material.DisableKeyword("SCENE");
                 material.EnableKeyword("DEPTH");
                 material.DisableKeyword("NORMALS");
                 material.DisableKeyword("DEPTHNORMALS");
                 break;
             case RenderMode.Normals:
+                material.DisableKeyword("SCENE");
                 material.DisableKeyword("DEPTH");
                 material.EnableKeyword("NORMALS");
                 material.DisableKeyword("DEPTHNORMALS");
                 break;
             case RenderMode.DepthNormals:
+                material.DisableKeyword("SCENE");
                 material.DisableKeyword("DEPTH");
                 material.DisableKeyword("NORMALS");
                 material.EnableKeyword("DEPTHNORMALS");
