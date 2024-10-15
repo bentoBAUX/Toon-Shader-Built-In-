@@ -578,7 +578,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: bfb743a1cd5e28a41a4fd4cb2a6e4060, type: 3}
-  mode: 0
+  mode: 1
+  edgeThickness: 1.66
+  edgeIntensity: 1.87
+  edgeColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!1001 &694469073
 PrefabInstance:
   m_ObjectHideFlags: 0

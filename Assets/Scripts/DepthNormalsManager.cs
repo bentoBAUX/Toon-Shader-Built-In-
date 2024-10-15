@@ -9,7 +9,7 @@ public enum RenderMode
     None = 0,
     Depth = 1,
     Normals = 2,
-    DepthNormals = 3
+    //DepthNormals = 3
 }
 
 [ExecuteInEditMode, ImageEffectAllowedInSceneView]
@@ -21,6 +21,9 @@ public class DepthNormalsManager : MonoBehaviour
 
     [SerializeField] private RenderMode mode = RenderMode.Depth;
 
+    [SerializeField] [Range(0,2)]private float edgeThickness = 1;
+    [SerializeField] [Range(1,5)] private float edgeIntensity = 1;
+    [SerializeField] private Color edgeColor;
 
     private void Start()
     {
@@ -31,6 +34,12 @@ public class DepthNormalsManager : MonoBehaviour
     {
         if (material == null)
             material = new Material(shader);
+
+        material.SetFloat("_EdgeThickness", edgeThickness);
+        material.SetFloat("_EdgeIntensity", edgeIntensity);
+        material.SetColor("_EdgeColor", edgeColor);
+
+
         switch (mode)
         {
             case RenderMode.None:
@@ -48,11 +57,11 @@ public class DepthNormalsManager : MonoBehaviour
                 material.EnableKeyword("NORMALS");
                 material.DisableKeyword("DEPTHNORMALS");
                 break;
-            case RenderMode.DepthNormals:
-                material.DisableKeyword("DEPTH");
-                material.DisableKeyword("NORMALS");
-                material.EnableKeyword("DEPTHNORMALS");
-                break;
+            // case RenderMode.DepthNormals:
+            //     material.DisableKeyword("DEPTH");
+            //     material.DisableKeyword("NORMALS");
+            //     material.EnableKeyword("DEPTHNORMALS");
+            //     break;
         }
         Graphics.Blit(source, destination, material);
     }
