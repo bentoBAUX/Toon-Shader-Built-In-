@@ -192,7 +192,7 @@ Shader "bentoBAUX/Toon Lit"
                 fixed NdotL = saturate(dot(n, l)) * atten;
 
                 fixed shadow = SHADOW_ATTENUATION(i);
-                float lightIntensity = NdotL * shadow * 1000.0;
+                float lightIntensity = NdotL * shadow / 0.01 ;
                 lightIntensity = saturate(lightIntensity);
 
                 // Blinn-Phong
@@ -208,28 +208,22 @@ Shader "bentoBAUX/Toon Lit"
 
                 half3 skyboxColor = UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, float3(0,1,0)).rgb;
 
-                half3 ambient = Ia * (UNITY_LIGHTMODEL_AMBIENT + _LightColor0.rgb + skyboxColor);
-                half3 diffuse = Id * _LightColor0.rgb * shadow;
+                half3 ambient = Ia * c * (UNITY_LIGHTMODEL_AMBIENT + skyboxColor * 0.2);
+                half3 diffuse = Id * c * _LightColor0.rgb * shadow;
                 half3 specular = Is * _LightColor0.rgb * shadow;
 
                 // Fresnel Rim-Lighting
                 half4 fresnel;
                 #ifdef RIM
-
                 fixed rimDot = 1 - dot(v, n);
                 float rimIntensity = rimDot * pow(NdotL, _RimThreshold);
-
                 rimIntensity = smoothstep(_FresnelPower - 0.01, _FresnelPower + 0.01, rimIntensity);
                 fresnel = rimIntensity * _LightColor0;
-
                 #else
                 fresnel = 0;
                 #endif
 
-                half3 lighting = diffuse + specular + fresnel;
-
-                half3 finalColor = ambient + lighting;
-                finalColor *= c.rgb;
+                half3 finalColor = ambient + diffuse + specular + fresnel;
 
                 UNITY_APPLY_FOG(i.fogCoord, finalColor);
 
@@ -378,27 +372,21 @@ Shader "bentoBAUX/Toon Lit"
                 float Is = 0.0;  // Disable specular if checkbox is unchecked
                 #endif
 
-                half3 diffuse = Id * _LightColor0.rgb * shadow;
+                half3 diffuse = Id * c * _LightColor0.rgb * shadow;
                 half3 specular = Is * _LightColor0.rgb * shadow;
 
                 // Fresnel Rim-Lighting
                 half4 fresnel;
                 #ifdef RIM
-
                 fixed rimDot = 1 - dot(v, n);
                 float rimIntensity = rimDot * pow(NdotL, _RimThreshold);
-
                 rimIntensity = smoothstep(_FresnelPower - 0.01, _FresnelPower + 0.01, rimIntensity);
                 fresnel = rimIntensity * _LightColor0;
-
                 #else
                 fresnel = 0;
                 #endif
 
-                half3 lighting = diffuse + specular + fresnel;
-
-                half3 finalColor = lighting;
-                finalColor *= c.rgb;
+                half3 finalColor = diffuse + specular + fresnel;
 
                 UNITY_APPLY_FOG(i.fogCoord, finalColor);
 

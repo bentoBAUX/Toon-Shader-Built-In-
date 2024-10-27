@@ -7,27 +7,26 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Plane
-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
+  m_Name: Toon 7
+  m_Shader: {fileID: 4800000, guid: 5379a8663a03d434283185325407be27, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _ALPHATEST_ON
-  - _EMISSION
-  m_InvalidKeywords: []
-  m_LightmapFlags: 2
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _RIM
+  - _SPECULAR
+  m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 2450
-  stringTagMap:
-    RenderType: TransparentCutout
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
+  m_LockedProperties: _ambient
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 7344974e905e03c42a8aa9fcef73a743, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -54,6 +53,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Normal:
+        m_Texture: {fileID: 2800000, guid: 95066e32ad43f0442850a93be0bbb02b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -64,23 +67,36 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AlphaCutoff: 0.5
     - _BumpScale: 1
-    - _Cutoff: 0.916
+    - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _GlossMapScale: 0.811
-    - _Glossiness: 0
+    - _FresnelPower: 0.58
+    - _GlossMapScale: 1
+    - _Glossiness: 34.82
     - _GlossyReflections: 1
     - _Metallic: 0
-    - _Mode: 1
+    - _Mode: 0
+    - _NormalStrength: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _Rim: 0
+    - _RimThreshold: 0.1
     - _SmoothnessTextureChannel: 0
+    - _Specular: 0
+    - _SpecularExponent: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
+    - _UseTransparent: 0
     - _ZWrite: 1
+    - _ambient: 0
+    - _sigma: 0.189
     m_Colors:
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 0.35099998, g: 0.35099998, b: 0.35099998, a: 1}
+    - _Color: {r: 0.8490566, g: 0.5238519, b: 0.5238519, a: 1}
+    - _DiffuseColour: {r: 0.735849, g: 0.5538349, b: 0.39291558, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _k: {r: 0.5, g: 0.5, b: 0, a: 1}
+    - _rho: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

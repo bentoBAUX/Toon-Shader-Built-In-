@@ -79,7 +79,7 @@ Material:
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
-    - _NormalStrength: 0.1
+    - _NormalStrength: 0.01
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Rim: 1

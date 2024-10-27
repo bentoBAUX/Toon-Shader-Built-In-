@@ -11,8 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 5379a8663a03d434283185325407be27, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - RIM
+  m_ValidKeywords: []
   m_InvalidKeywords:
   - AMBIENT
   - _RIM
@@ -73,6 +72,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AlphaCutoff: 0.5
     - _Ambient: 1
     - _BumpScale: 1
     - _Cutoff: 0.5
@@ -87,7 +87,7 @@ Material:
     - _NormalStrength: 2.44
     - _OcclusionStrength: 1
     - _Parallax: 0.02
-    - _Rim: 1
+    - _Rim: 0
     - _RimThreshold: 0.377
     - _SmoothnessTextureChannel: 0
     - _Specular: 0
@@ -95,6 +95,7 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
+    - _UseTransparent: 0
     - _ZWrite: 1
     - _ambient: 0
     m_Colors:
