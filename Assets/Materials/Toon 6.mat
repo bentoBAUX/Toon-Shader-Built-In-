@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - RIM
+  - SPECULAR
   m_InvalidKeywords:
   - _RIM
   - _SPECULAR
@@ -79,13 +80,13 @@ Material:
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
-    - _NormalStrength: 0.01
+    - _NormalStrength: 0.1
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _Rim: 1
     - _RimThreshold: 0.1
     - _SmoothnessTextureChannel: 0
-    - _Specular: 0
+    - _Specular: 1
     - _SpecularExponent: 1
     - _SpecularHighlights: 1
     - _SrcBlend: 1

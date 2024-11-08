@@ -191,7 +191,7 @@ Shader "bentoBAUX/Toon Lit"
 
                 fixed NdotL = saturate(dot(n, l)) * atten;
 
-                fixed shadow = SHADOW_ATTENUATION(i);
+                fixed shadow = smoothstep(0.0, 0.02, SHADOW_ATTENUATION(i)); // To get rid of shadow artefacts
                 float lightIntensity = NdotL * shadow / 0.01 ;
                 lightIntensity = saturate(lightIntensity);
 
@@ -358,7 +358,7 @@ Shader "bentoBAUX/Toon Lit"
 
                 float NdotL = saturate(dot(n, l)) * atten;
 
-                fixed shadow = SHADOW_ATTENUATION(i);
+                fixed shadow = smoothstep(0.0, 0.02, SHADOW_ATTENUATION(i)); // To get rid of shadow artefacts
                 float lightIntensity = smoothstep(0, 0.001, NdotL) * shadow;
                 lightIntensity = saturate(lightIntensity);
 
